@@ -63,7 +63,11 @@ class Superwar {
       let type = i % 2 == 0 ? 'hero' : 'villain';
       return new Player(i, player, type);
     });
-    this.score = [0, 0];
+
+    this.score = { hero: 0, villain: 0 }
+    this.strength = { hero: 0, villain: 0 }
+    this.wins = { hero: 0, villain: 0 }
+
     Array.from(document.getElementsByClassName('team')).forEach((elem) =>
       elem.addEventListener('click', (e) => {
         this.handleSelection(e.target);
@@ -115,9 +119,10 @@ class Superwar {
   };
 
   // Progression 1: Check for fight
-  isFight = () => {
+  isFight = (strength) => {
     // Type your code here
     // return  'clash' or 'peace';
+    return strength > 0 ? 'clash' : 'peace';
   };
 
   // Fight
@@ -125,7 +130,9 @@ class Superwar {
     // Filtered the selected players and calculate score
     // Should return HTML element with score
     // Type your code here
-
+    let score = this.calculateScore()
+    let scoreCard = document.getElementById('score')
+    scoreCard.innerHTML = '1 - 0'
     if (this.checkWin() !== 'endure')
       setTimeout(() => this.announceWinner(score), 100);
   };
@@ -134,7 +141,11 @@ class Superwar {
   calculateScore = () => {
     // Calculate and return the total score of teams
     // Type your code here
-
+    let score = this.score
+    let heroes = this.players.filter((player) => player.type == "hero")
+    heroes.forEach((player) => score['hero'] += player.wins)
+    let villains = this.players.filter((player) => player.type == "villain")
+    villains.forEach((player) => score['villain'] += player.wins)
     return score;
   };
 
@@ -143,16 +154,40 @@ class Superwar {
     // Find the winner if exists return type hero or villain
     // If winner dosen't exists then return endure
     // Type your code here
-
-    return result;
+    let result = 'endure'
+    let strength = {
+      hero: this.totalStrength('hero'),
+      villain: this.totalStrength('villain')
+    }
+    if(strength['hero'] > strength['villain']){
+      result = 'hero'
+    }
+    if(strength['villain'] > strength['hero']){
+      result = 'villain'
+    }
+    return result
   };
 
+  updateWin = () => {
+    let win = { hero: 0, villain: 0, draw: 0 };
+    let winner = this.checkWin();
+    if (winner == 'hero') {
+      win['hero'] += 1;
+    } else if (winner == 'villain') {
+      win['villain'] += 1;
+    } else {
+      win['draw'] += 1;
+    }
+
+    return win;
+  }
   // Progression 4: Find total strength of a team
   totalStrength = (type) => {
-    // Calculate and return the total strength of the team
-    // Type your code here
-
-    return strength;
+    let team = this.players.filter((player) => player.type == type)
+    team.forEach((player) => {
+      this.strength[type] += player.strength
+    })
+    return this.strength[type];
   };
 
   // Announce the winner
